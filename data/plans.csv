@@ -1,0 +1,8 @@
+plan_id,plan_name,monthly_price,billing_cycle
+1,Free,0,monthly
+2,Starter,15,monthly
+3,Starter,150,annual
+4,Pro,49,monthly
+5,Pro,490,annual
+6,Enterprise,199,monthly
+7,Enterprise,1990,annual
