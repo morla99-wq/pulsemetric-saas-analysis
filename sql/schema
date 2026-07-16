@@ -1,0 +1,74 @@
+-- ============================================================
+-- PulseMetrics SaaS Analytics Project — Postgres Schema
+-- ============================================================
+-- Run this file with: psql -d your_database -f schema.sql
+-- (adjust the file paths in the \copy commands if needed)
+
+DROP TABLE IF EXISTS support_tickets;
+DROP TABLE IF EXISTS product_events;
+DROP TABLE IF EXISTS subscriptions;
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS plans;
+
+CREATE TABLE plans (
+    plan_id        INTEGER PRIMARY KEY,
+    plan_name      VARCHAR(50) NOT NULL,
+    monthly_price  NUMERIC(10,2) NOT NULL,
+    billing_cycle  VARCHAR(20) NOT NULL
+);
+
+CREATE TABLE users (
+    user_id              INTEGER PRIMARY KEY,
+    full_name            VARCHAR(100),
+    email                VARCHAR(150),
+    company_name         VARCHAR(150),
+    industry             VARCHAR(50),
+    company_size         VARCHAR(20),
+    country              VARCHAR(50),
+    acquisition_channel  VARCHAR(50),
+    signup_date          DATE NOT NULL
+);
+
+CREATE TABLE subscriptions (
+    subscription_id     INTEGER PRIMARY KEY,
+    user_id              INTEGER REFERENCES users(user_id),
+    plan_id              INTEGER REFERENCES plans(plan_id),
+    start_date           DATE NOT NULL,
+    end_date             DATE,
+    status                VARCHAR(20) NOT NULL,   -- active, upgraded, downgraded, canceled
+    mrr                   NUMERIC(10,2) NOT NULL,
+    cancellation_reason   VARCHAR(100)
+);
+
+CREATE TABLE product_events (
+    event_id          BIGINT PRIMARY KEY,
+    user_id           INTEGER REFERENCES users(user_id),
+    event_timestamp   TIMESTAMP NOT NULL,
+    event_type        VARCHAR(50) NOT NULL,
+    feature_category  VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE support_tickets (
+    ticket_id            INTEGER PRIMARY KEY,
+    user_id              INTEGER REFERENCES users(user_id),
+    created_at           TIMESTAMP NOT NULL,
+    resolved_at          TIMESTAMP,
+    priority             VARCHAR(20),
+    category             VARCHAR(50),
+    satisfaction_rating  SMALLINT
+);
+
+-- Helpful indexes for the analysis queries in questions.md
+CREATE INDEX idx_subscriptions_user ON subscriptions(user_id);
+CREATE INDEX idx_events_user ON product_events(user_id);
+CREATE INDEX idx_events_type ON product_events(event_type);
+CREATE INDEX idx_tickets_user ON support_tickets(user_id);
+
+-- ============================================================
+-- Load data (edit the paths below to match where you saved the CSVs)
+-- ============================================================
+\copy plans FROM 'plans.csv' WITH (FORMAT csv, HEADER true, NULL '')
+\copy users FROM 'users.csv' WITH (FORMAT csv, HEADER true, NULL '')
+\copy subscriptions FROM 'subscriptions.csv' WITH (FORMAT csv, HEADER true, NULL '')
+\copy product_events FROM 'product_events.csv' WITH (FORMAT csv, HEADER true, NULL '')
+\copy support_tickets FROM 'support_tickets.csv' WITH (FORMAT csv, HEADER true, NULL '')
